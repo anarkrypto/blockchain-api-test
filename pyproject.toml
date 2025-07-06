@@ -1,0 +1,34 @@
+[project]
+name = "test-blockchain-ethereum-api"
+version = "0.1.0"
+description = "Teste especialista blockchain para Mercado Bitcoin"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi[standard]>=0.115.14",
+    "python-dotenv>=1.1.1",
+]
+
+[tool.ruff]
+line-length = 79
+extend-exclude = ['.venv']
+
+[tool.ruff.lint]
+preview = true
+select = ['I', 'F', 'E', 'W', 'PL', 'PT']
+
+[tool.ruff.format]
+preview = true
+quote-style = 'single'
+
+[dependency-groups]
+dev = [
+    "mypy>=1.16.1",
+    "pytest>=8.4.1",
+    "ruff>=0.12.2",
+]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+ignore_missing_imports = true
