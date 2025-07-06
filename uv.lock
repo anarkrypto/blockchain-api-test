@@ -1423,6 +1423,7 @@ dependencies = [
     { name = "bip-utils" },
     { name = "eth-account" },
     { name = "fastapi", extra = ["standard"] },
+    { name = "pydantic" },
     { name = "python-dotenv" },
 ]
 
@@ -1438,6 +1439,7 @@ requires-dist = [
     { name = "bip-utils", specifier = ">=2.9.3" },
     { name = "eth-account", specifier = ">=0.13.7" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.115.14" },
+    { name = "pydantic", specifier = ">=2.11.7" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
 ]
 

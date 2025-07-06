@@ -8,6 +8,7 @@ dependencies = [
     "bip-utils>=2.9.3",
     "eth-account>=0.13.7",
     "fastapi[standard]>=0.115.14",
+    "pydantic>=2.11.7",
     "python-dotenv>=1.1.1",
 ]
 
