@@ -24,6 +24,10 @@ uv python pin 3.10
 uv sync
 ```
 
+## Config
+
+- Copie o arquivo `.env.example` para `.env` e configure as variáveis de ambiente.
+
 ## Running
 
 ```bash
