@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import Annotated, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -13,6 +13,41 @@ NonNegativeInt = Annotated[int, Field(ge=0)]
 class KeyPair(BaseModel):
     address: str
     private_key: str
+
+
+class EthTransfer(BaseModel):
+    amount: int
+    from_address: str
+    to_address: str
+
+
+class Erc20Transfer(BaseModel):
+    token_address: str
+    amount: int
+    from_address: str
+    to_address: str
+
+
+TransactionType = Literal['ETH_TRANSFER', 'USDC_TRANSFER', 'OTHER']
+
+
+class TransactionResult(BaseModel):
+    transaction_hash: str
+    block_number: int
+    from_address: str
+    to_address: Optional[str]
+    eth_transfer: List[EthTransfer] = []
+    usdc_transfer: List[Erc20Transfer] = []
+    transaction_type: List[TransactionType] = []
+
+
+class TransferTransaction(BaseModel):
+    hash: str
+    from_address: str
+    to_address: str
+    amount: str
+    chain_id: int
+    token: str
 
 
 class GenerateAddressesRequest(BaseModel):
