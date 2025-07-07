@@ -48,3 +48,35 @@ class Balance(Base):
         nullable=False,
         server_default=text('CURRENT_TIMESTAMP'),
     )
+
+
+class Transaction(Base):
+    __tablename__ = 'transactions'
+
+    hash: Mapped[str] = mapped_column(String, primary_key=True)
+    from_address: Mapped[str | None] = mapped_column(
+        String,
+        ForeignKey('addresses.address'),
+        nullable=True,
+    )
+    to_address: Mapped[str | None] = mapped_column(
+        String,
+        ForeignKey('addresses.address'),
+        nullable=True,
+    )
+    amount: Mapped[str] = mapped_column(String, nullable=False)
+    chain_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        nullable=False,
+    )
+    token: Mapped[str] = mapped_column(
+        String,
+        primary_key=True,
+        nullable=False,
+    )
+    created_at: Mapped[str] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=text('CURRENT_TIMESTAMP'),
+    )
