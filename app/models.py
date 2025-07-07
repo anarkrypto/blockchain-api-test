@@ -1,5 +1,7 @@
-from sqlalchemy import Column, DateTime, Integer, String, text
-from sqlalchemy.orm import DeclarativeBase
+from datetime import datetime
+
+from sqlalchemy import DateTime, Integer, String, text
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
 class Base(DeclarativeBase):
@@ -9,9 +11,9 @@ class Base(DeclarativeBase):
 class Address(Base):
     __tablename__ = 'addresses'
 
-    address = Column(String, primary_key=True)
-    index = Column(Integer, unique=True, nullable=False)
-    created_at = Column(
+    address: Mapped[str] = mapped_column(String, primary_key=True)
+    index: Mapped[int] = mapped_column(Integer, unique=True, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         server_default=text('CURRENT_TIMESTAMP'),
