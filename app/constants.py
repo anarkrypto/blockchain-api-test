@@ -1,5 +1,5 @@
 import os
-from typing import Dict, Literal, cast
+from typing import Dict, Literal, cast, get_args
 
 from dotenv import load_dotenv
 from eth_typing import ChainId
@@ -14,9 +14,11 @@ assert INFURA_API_KEY, 'INFURA_API_KEY environment variable must be set.'
 
 NetworkType = Literal['mainnet', 'sepolia']
 
+VALID_NETWORKS = list(get_args(NetworkType))
+
 NETWORK = cast(NetworkType, os.getenv('NETWORK', 'sepolia'))
-assert NETWORK in {'mainnet', 'sepolia'}, (
-    f'Invalid NETWORK value: {NETWORK}. Must be "mainnet" or "sepolia".'
+assert NETWORK in VALID_NETWORKS, (
+    f'Invalid NETWORK value: {NETWORK}. Must be one of: {VALID_NETWORKS}.'
 )
 
 NETWORKS: Dict[NetworkType, Network] = {
