@@ -1,7 +1,8 @@
-from typing import List
-
 from fastapi import Depends, FastAPI
+from sqlalchemy.orm import Session
 
+from app.database import get_db
+from app.models import Address
 from app.schemas import (
     GenerateAddressesRequest,
     GenerateAddressesResponse,
@@ -16,13 +17,11 @@ app = FastAPI(
     version='0.1.0',
 )
 
-# Temporary in-memory storage (not persistent)
-generated_addresses: List[str] = []
-
 
 @app.post('/addresses', tags=['items'])
 async def generate_addresses(
     req: GenerateAddressesRequest,
+    db: Session = Depends(get_db),
 ) -> GenerateAddressesResponse:
     """
     Generate Ethereum addresses.
@@ -37,23 +36,32 @@ async def generate_addresses(
      - **total**: the total of addresses accumulated.
     \f
     """
-    total_before = len(generated_addresses)
+    total_before = db.query(Address).count()
 
     for i in range(req.quantity):
         index = total_before + i
         keypair = generate_keypair(index)
-        generated_addresses.append(keypair.address)
+        address = Address(
+            address=keypair.address,
+            index=index,
+        )
+        db.add(address)
+
+    db.commit()
+
+    total_after = db.query(Address).count()
 
     return GenerateAddressesResponse(
         success=True,
         generated=req.quantity,
-        total=len(generated_addresses),
+        total=total_after,
     )
 
 
 @app.get('/addresses')
 async def list_addresses(
     params: ListAddressesPaginationParams = Depends(),
+    db: Session = Depends(get_db),
 ) -> ListAddressesResponse:
     """
     List previously generated Ethereum addresses.
@@ -65,10 +73,22 @@ async def list_addresses(
 
     skip, limit = params.skip, params.limit
 
+    total = db.query(Address).count()
+
+    addresses = (
+        db.query(Address.address)
+        .order_by(Address.index)
+        .offset(skip)
+        .limit(limit)
+        .all()
+    )
+
+    addresses_list = [a[0] for a in addresses]
+
     return ListAddressesResponse(
         success=True,
         limit=limit,
         skip=skip,
-        total=len(generated_addresses),
-        addresses=generated_addresses[skip : skip + limit],
+        total=total,
+        addresses=addresses_list,
     )
