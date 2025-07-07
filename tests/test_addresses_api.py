@@ -4,21 +4,14 @@ from eth_utils.address import is_address
 from fastapi import status
 from fastapi.testclient import TestClient
 
-from app.main import app, generated_addresses
 from app.schemas import GenerateAddressesResponse, ListAddressesResponse
-
-client = TestClient(app)
 
 
 def validate_response_schema(data: Dict[str, Any], schema_class: type) -> None:
     schema_class(**data)
 
 
-def cleanup_generated_addresses() -> None:
-    generated_addresses.clear()
-
-
-def test_generate_addresses_successful_generation() -> None:
+def test_generate_addresses_successful_generation(client: TestClient) -> None:
     quantity = 10
     response = client.post('/addresses', json={'quantity': quantity})
     assert response.status_code == status.HTTP_200_OK
@@ -31,9 +24,7 @@ def test_generate_addresses_successful_generation() -> None:
     assert data['total'] == quantity
 
 
-def test_generate_addresses_accumulates_total() -> None:
-    cleanup_generated_addresses()
-
+def test_generate_addresses_accumulates_total(client: TestClient) -> None:
     quantity = 10
 
     # Generate first batch
@@ -53,7 +44,13 @@ def test_generate_addresses_accumulates_total() -> None:
     assert data2['total'] == quantity * 2
 
 
-def test_list_addresses_pagination() -> None:
+def test_list_addresses_pagination(client: TestClient) -> None:
+    # Setup: Create test data
+    quantity = 15
+    setup_response = client.post('/addresses', json={'quantity': quantity})
+    assert setup_response.status_code == status.HTTP_200_OK
+
+    # Test: Get paginated results
     skip = 0
     limit = 10
     response = client.get(f'/addresses?skip={skip}&limit={limit}')
@@ -65,18 +62,18 @@ def test_list_addresses_pagination() -> None:
     assert data['success'] is True
     assert data['skip'] == skip
     assert data['limit'] == limit
-    assert data['total'] == len(generated_addresses)
+    assert data['total'] == quantity
     assert len(data['addresses']) == limit
 
     for address in data['addresses']:
         assert is_address(address)
 
 
-def test_generate_addresses_invalid_quantity() -> None:
+def test_generate_addresses_invalid_quantity(client: TestClient) -> None:
     response = client.post('/addresses', json={'quantity': -1})
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
-def test_list_addresses_invalid_pagination() -> None:
+def test_list_addresses_invalid_pagination(client: TestClient) -> None:
     response = client.get('/addresses?skip=-5&limit=0')
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
