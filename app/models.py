@@ -53,7 +53,12 @@ class Balance(Base):
 class Transaction(Base):
     __tablename__ = 'transactions'
 
-    hash: Mapped[str] = mapped_column(String, primary_key=True)
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+
+    # Hash is not unique since a single transaction can transfer multiple
+    # assets to multiple addresses (even the same address multiple times)
+    hash: Mapped[str] = mapped_column(String, nullable=False, index=True)
+
     from_address: Mapped[str | None] = mapped_column(
         String,
         ForeignKey('addresses.address'),
