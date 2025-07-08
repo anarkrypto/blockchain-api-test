@@ -69,6 +69,13 @@ async def list_addresses(
     Supports pagination using `skip` and `limit` query parameters.
     \f
     :param params: Pagination parameters including skip and limit.
+
+    Returns:
+        - **success**: boolean
+        - **limit**: the number of addresses returned
+        - **skip**: the number of addresses skipped
+        - **total**: the total number of addresses
+        - **addresses**: the list of addresses
     """
 
     skip, limit = params.skip, params.limit
