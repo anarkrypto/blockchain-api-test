@@ -31,7 +31,7 @@ class TransactionDetector:
         self.network = network
         self.usdc_address = USDC_CONTRACTS[network].lower()
 
-    def detect_transaction(self, tx_hash: str) -> Optional[TransactionResult]:
+    def detect_transaction(self, tx_hash: str) -> TransactionResult:
         """
         Detect transaction transfers for ETH, USDC and other ERC20 tokens.
 
@@ -68,10 +68,10 @@ class TransactionDetector:
 
         except (TransactionNotFound, BlockNotFound) as e:
             logger.error(f'Transaction {tx_hash} not found: {e}')
-            return None
+            raise e
         except Exception as e:
             logger.error(f'Error processing transaction {tx_hash}: {e}')
-            raise
+            raise e
 
     @staticmethod
     def _validate_and_format_hash(tx_hash: str) -> HexStr:
