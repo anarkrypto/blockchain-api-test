@@ -41,15 +41,6 @@ class TransactionResult(BaseModel):
     transaction_type: List[TransactionType] = []
 
 
-class TransferTransaction(BaseModel):
-    hash: str
-    from_address: str
-    to_address: str
-    amount: str
-    chain_id: int
-    token: str
-
-
 class GenerateAddressesRequest(BaseModel):
     quantity: Annotated[
         int, Field(gt=0, le=MAX_ADDRESSES_TO_GENERATE_PER_REQUEST)
