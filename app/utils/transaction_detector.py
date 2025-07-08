@@ -2,6 +2,7 @@ import logging
 from typing import List, Optional
 
 from eth_typing import HexStr
+from eth_utils.hexadecimal import is_hex
 from web3 import Web3
 from web3.exceptions import BlockNotFound, TransactionNotFound
 from web3.types import LogReceipt, TxData, TxReceipt
@@ -84,10 +85,8 @@ class TransactionDetector:
             tx_hash = '0x' + tx_hash
 
         # Validate length (64 hex chars + 0x prefix)
-        if len(tx_hash) != 66:
-            raise ValueError(
-                f'Invalid transaction hash length: {len(tx_hash)}'
-            )
+        if len(tx_hash) != 66 or not is_hex(tx_hash):  # noqa: PLR2004
+            raise ValueError('Invalid transaction hash')
 
         try:
             return HexStr(tx_hash)
