@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from app.constants import (
     MAX_ADDRESSES_TO_GENERATE_PER_REQUEST,
     MAX_ADDRESSES_TO_LIST_PER_REQUEST,
+    TokenType,
 )
 
 NonNegativeInt = Annotated[int, Field(ge=0)]
@@ -77,7 +78,7 @@ class ProcessTransactionRequest(BaseModel):
 class Deposit(BaseModel):
     address: str
     amount: int
-    asset: str
+    token: TokenType
 
 
 class ProcessTransactionResponse(APIResponse):

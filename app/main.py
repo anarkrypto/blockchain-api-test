@@ -4,7 +4,7 @@ from typing import List
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.constants import NETWORK, NETWORKS
+from app.constants import NETWORK, NETWORKS, TokenType
 from app.database import get_db
 from app.models import Address, ProcessedTransaction, Transaction
 from app.schemas import (
@@ -167,7 +167,9 @@ async def process_transaction(
 
     for transfer in all_transfers:
         if transfer.to_address.lower() in existent_addresses:
-            token = 'ETH' if isinstance(transfer, EthTransfer) else 'USDC'
+            token: TokenType = (
+                'ETH' if isinstance(transfer, EthTransfer) else 'USDC'
+            )
             transaction = Transaction(
                 id=uuid.uuid4(),
                 hash=req.hash,
@@ -182,7 +184,7 @@ async def process_transaction(
                 Deposit(
                     address=transfer.to_address.lower(),
                     amount=transfer.amount,
-                    asset=token,
+                    token=token,
                 )
             )
 

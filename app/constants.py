@@ -39,5 +39,7 @@ USDC_CONTRACTS: Dict[NetworkType, str] = {
     'sepolia': '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238',
 }
 
+TokenType = Literal['ETH', 'USDC']
+
 MAX_ADDRESSES_TO_GENERATE_PER_REQUEST = 100
 MAX_ADDRESSES_TO_LIST_PER_REQUEST = 100
