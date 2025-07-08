@@ -98,7 +98,7 @@ class TransactionDetector:
     def _create_base_result(tx: TxData) -> TransactionResult:
         """Create base transaction result object."""
         return TransactionResult(
-            transaction_hash=tx['hash'].hex(),
+            hash=tx['hash'].hex(),
             block_number=tx['blockNumber'],
             from_address=tx['from'],
             to_address=tx['to'],

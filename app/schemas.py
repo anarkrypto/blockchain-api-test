@@ -32,7 +32,7 @@ TransactionType = Literal['ETH_TRANSFER', 'USDC_TRANSFER', 'OTHER']
 
 
 class TransactionResult(BaseModel):
-    transaction_hash: str
+    hash: str
     block_number: int
     from_address: str
     to_address: Optional[str]
