@@ -42,7 +42,7 @@ async def generate_addresses(
         index = total_before + i
         keypair = generate_keypair(index)
         address = Address(
-            address=keypair.address,
+            address=keypair.address.lower(),
             index=index,
         )
         db.add(address)
