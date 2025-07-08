@@ -98,10 +98,10 @@ class TransactionDetector:
     def _create_base_result(tx: TxData) -> TransactionResult:
         """Create base transaction result object."""
         return TransactionResult(
-            hash=tx['hash'].hex(),
+            hash=tx['hash'].hex().lower(),
             block_number=tx['blockNumber'],
-            from_address=tx['from'],
-            to_address=tx['to'],
+            from_address=tx['from'].lower(),
+            to_address=tx['to'].lower(),
             eth_transfer=[],
             usdc_transfer=[],
             transaction_type=[],
@@ -115,8 +115,8 @@ class TransactionDetector:
             result.eth_transfer.append(
                 EthTransfer(
                     amount=eth_value,
-                    from_address=tx['from'],
-                    to_address=tx['to'],
+                    from_address=tx['from'].lower(),
+                    to_address=tx['to'].lower(),
                 )
             )
             result.transaction_type.append('ETH_TRANSFER')
@@ -169,9 +169,9 @@ class TransactionDetector:
 
             return Erc20Transfer(
                 amount=value,
-                from_address=from_address,
-                to_address=to_address,
-                token_address=token_address,
+                from_address=from_address.lower(),
+                to_address=to_address.lower(),
+                token_address=token_address.lower(),
             )
 
         except (ValueError, IndexError, KeyError) as e:
