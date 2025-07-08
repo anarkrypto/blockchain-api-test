@@ -143,6 +143,14 @@ async def process_transaction(
         'ETH_TRANSFER' not in result.transaction_type
         and 'USDC_TRANSFER' not in result.transaction_type
     ):
+        db.add(
+            ProcessedTransaction(
+                hash=req.hash, chain_id=NETWORKS[NETWORK].chain_id
+            )
+        )
+
+        db.commit()
+
         return ProcessTransactionResponse(
             success=True,
             hash=req.hash,
