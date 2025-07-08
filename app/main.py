@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.constants import NETWORK, NETWORKS, TokenType
 from app.database import get_db
-from app.models import Address, ProcessedTransaction, Transaction
+from app.models import Address, Balance, ProcessedTransaction, Transaction
 from app.schemas import (
     Deposit,
     EthTransfer,
@@ -180,6 +180,31 @@ async def process_transaction(
                 token=token,
             )
             db.add(transaction)
+
+            # Update Balance
+            balance = (
+                db.query(Balance)
+                .filter_by(
+                    address=transfer.to_address.lower(),
+                    token=token,
+                )
+                .first()
+            )
+            if balance:
+                balance.amount = str(
+                    int(balance.amount) + int(transfer.amount)
+                )
+            else:
+                balance = Balance(
+                    address=transfer.to_address.lower(),
+                    amount=str(transfer.amount),
+                    token=token,
+                    chain_id=NETWORKS[NETWORK].chain_id,
+                )
+                db.add(balance)
+
+            db.commit()
+
             deposits.append(
                 Deposit(
                     address=transfer.to_address.lower(),
