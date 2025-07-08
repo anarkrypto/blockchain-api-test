@@ -77,3 +77,20 @@ class ListAddressesResponse(APIResponse):
     skip: int
     total: int
     addresses: List[str]
+
+
+class ProcessTransactionRequest(BaseModel):
+    hash: str
+
+
+class Deposit(BaseModel):
+    address: str
+    amount: int
+    asset: str
+
+
+class ProcessTransactionResponse(APIResponse):
+    hash: str
+    network: str
+    chain_id: int
+    deposits: List[Deposit]

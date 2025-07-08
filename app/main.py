@@ -1,15 +1,24 @@
-from fastapi import Depends, FastAPI
+import uuid
+from typing import List
+
+from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.constants import NETWORK, NETWORKS
 from app.database import get_db
-from app.models import Address
+from app.models import Address, ProcessedTransaction, Transaction
 from app.schemas import (
+    Deposit,
+    EthTransfer,
     GenerateAddressesRequest,
     GenerateAddressesResponse,
     ListAddressesPaginationParams,
     ListAddressesResponse,
+    ProcessTransactionRequest,
+    ProcessTransactionResponse,
 )
 from app.utils.keypair import generate_keypair
+from app.utils.transaction_detector import TransactionDetector
 
 app = FastAPI(
     title='Blockchain API',
@@ -98,4 +107,97 @@ async def list_addresses(
         skip=skip,
         total=total,
         addresses=addresses_list,
+    )
+
+
+@app.post('/process-transaction')
+async def process_transaction(
+    req: ProcessTransactionRequest,
+    db: Session = Depends(get_db),
+) -> ProcessTransactionResponse:
+    """
+    Process a transaction by its hash.
+
+    Request body:
+    - **hash**: the hash of the transaction to process
+
+    Returns:
+     - **success**: boolean
+     - **hash**: the hash of the transaction
+     - **network**: the network of the transaction
+     - **chain_id**: the chain ID of the network
+     - **deposits**: list of deposits made by the transaction
+    \f
+    """
+
+    if db.query(ProcessedTransaction).filter_by(hash=req.hash).first():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail='Transaction has already been processed.',
+        )
+
+    detector = TransactionDetector(NETWORK)
+    result = detector.detect_transaction(req.hash)
+
+    if (
+        'ETH_TRANSFER' not in result.transaction_type
+        and 'USDC_TRANSFER' not in result.transaction_type
+    ):
+        return ProcessTransactionResponse(
+            success=True,
+            hash=req.hash,
+            network=NETWORK,
+            chain_id=NETWORKS[NETWORK].chain_id,
+            deposits=[],
+        )
+
+    all_transfers = result.eth_transfer + result.usdc_transfer
+    to_addresses = list(
+        set([item.to_address.lower() for item in all_transfers])
+    )
+
+    existent_addresses = {
+        row.address
+        for row in db.query(Address.address)
+        .filter(Address.address.in_(to_addresses))
+        .all()
+    }
+
+    deposits: List[Deposit] = []
+
+    for transfer in all_transfers:
+        if transfer.to_address.lower() in existent_addresses:
+            token = 'ETH' if isinstance(transfer, EthTransfer) else 'USDC'
+            transaction = Transaction(
+                id=uuid.uuid4(),
+                hash=req.hash,
+                from_address=transfer.from_address.lower(),
+                to_addresses=transfer.to_address.lower(),
+                amount=transfer.amount,
+                chain_id=NETWORKS[NETWORK].chain_id,
+                token=token,
+            )
+            db.add(transaction)
+            deposits.append(
+                Deposit(
+                    address=transfer.to_address.lower(),
+                    amount=transfer.amount,
+                    asset=token,
+                )
+            )
+
+    db.add(
+        ProcessedTransaction(
+            hash=req.hash, chain_id=NETWORKS[NETWORK].chain_id
+        )
+    )
+
+    db.commit()
+
+    return ProcessTransactionResponse(
+        success=True,
+        hash=req.hash,
+        network=NETWORK,
+        chain_id=NETWORKS[NETWORK].chain_id,
+        deposits=deposits,
     )
