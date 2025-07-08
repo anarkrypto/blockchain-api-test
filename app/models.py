@@ -85,3 +85,19 @@ class Transaction(Base):
         nullable=False,
         server_default=text('CURRENT_TIMESTAMP'),
     )
+
+
+class ProcessedTransaction(Base):
+    __tablename__ = 'processed_transactions'
+
+    hash: Mapped[str] = mapped_column(String, primary_key=True)
+    chain_id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        nullable=False,
+    )
+    created_at: Mapped[str] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=text('CURRENT_TIMESTAMP'),
+    )
