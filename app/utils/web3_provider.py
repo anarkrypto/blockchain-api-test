@@ -3,7 +3,7 @@ from web3 import Web3
 from app.constants import INFURA_API_KEY, VALID_NETWORKS, NetworkType
 
 
-def getWeb3Provider(network: NetworkType) -> Web3:
+def get_web3_provider(network: NetworkType) -> Web3:
     """
     Get a Web3 provider for the specified network.
     Args:

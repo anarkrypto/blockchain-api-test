@@ -9,7 +9,7 @@ from web3.types import LogReceipt, TxData, TxReceipt
 
 from app.constants import USDC_CONTRACTS, NetworkType
 from app.schemas import Erc20Transfer, EthTransfer, TransactionResult
-from app.utils.web3_provider import getWeb3Provider
+from app.utils.web3_provider import get_web3_provider
 
 TRANSFER_EVENT_SIGNATURE = Web3.keccak(
     text='Transfer(address,address,uint256)'
@@ -28,7 +28,7 @@ class TransactionDetector:
         Args:
             network: Network type to connect to
         """
-        self.w3 = getWeb3Provider(network)
+        self.w3 = get_web3_provider(network)
         self.network = network
         self.usdc_address = USDC_CONTRACTS[network].lower()
 
