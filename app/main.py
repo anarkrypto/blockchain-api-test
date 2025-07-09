@@ -20,8 +20,12 @@ from app.schemas import (
     WithdrawResponse,
 )
 from app.utils.keypair import generate_keypair
+from app.utils.receipt_processor import ReceiptProcessor
 from app.utils.transaction_detector import TransactionDetector
 from app.utils.wallet import Wallet
+
+receipt_processor = ReceiptProcessor(network=NETWORK)
+receipt_processor.start()
 
 app = FastAPI(
     title='Blockchain API',
@@ -287,6 +291,8 @@ async def withdraw(
     )
     db.add(tx)
     db.commit()
+
+    receipt_processor.add_pending_transaction(tx)
 
     # Balances updates will be done in the background
     # by the receipt_processor
