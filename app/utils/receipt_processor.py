@@ -60,10 +60,20 @@ class ReceiptProcessor:
                 f'Transaction {transaction.hash} not found on chain'
             )
 
+    def _sync_pending_transactions(self) -> None:
+        pending_transactions = (
+            self.db.query(Transaction)
+            .filter(Transaction.status == 'pending')
+            .all()
+        )
+        for transaction in pending_transactions:
+            self.add_pending_transaction(transaction)
+
     def add_pending_transaction(self, transaction: Transaction) -> None:
         self.pending_transactions.append(transaction)
 
     def start(self) -> None:
+        self._sync_pending_transactions()
         while True:
             for transaction in self.pending_transactions:
                 try:
