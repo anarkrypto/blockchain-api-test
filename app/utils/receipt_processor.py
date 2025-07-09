@@ -1,0 +1,72 @@
+import time
+from typing import List
+
+from eth_utils.address import to_checksum_address
+from web3.exceptions import TransactionNotFound
+
+from app.constants import NetworkType
+from app.database import SessionLocal
+from app.models import Balance, Transaction
+from app.schemas import TransactionStatus
+from app.utils.logger import logger
+from app.utils.web3_provider import get_web3_provider
+
+
+class ReceiptProcessor:
+    def __init__(self, network: NetworkType):
+        self.w3 = get_web3_provider(network)
+        self.pending_transactions: List[Transaction] = []
+        self.db = SessionLocal()
+
+    def update_transaction(
+        self, transaction: Transaction, tx_status: TransactionStatus
+    ) -> None:
+        transaction.status = tx_status
+        self.db.commit()
+        self.pending_transactions.remove(transaction)
+
+    def update_balance(self, transaction: Transaction) -> None:
+        balance = (
+            self.db.query(Balance)
+            .filter_by(
+                address=transaction.to_address,
+                chain_id=transaction.chain_id,
+                token=transaction.token,
+            )
+            .first()
+        )
+        assert balance is not None
+        assert transaction.fee is not None
+        balance.balance = str(
+            int(balance.balance)
+            - (int(transaction.amount) + int(transaction.fee))
+        )
+        self.db.commit()
+
+    def process_transaction(self, transaction: Transaction) -> None:
+        self.pending_transactions.append(transaction)
+
+        try:
+            tx_receipt = self.w3.eth.get_transaction_receipt(
+                to_checksum_address(transaction.hash)
+            )
+            if not tx_receipt or tx_receipt['status'] != 1:
+                self.update_transaction(transaction, 'failed')
+                return
+            self.update_transaction(transaction, 'confirmed')
+            self.update_balance(transaction)
+        except TransactionNotFound:
+            logger.warning(
+                f'Transaction {transaction.hash} not found on chain'
+            )
+
+    def start(self) -> None:
+        while True:
+            for transaction in self.pending_transactions:
+                try:
+                    self.process_transaction(transaction)
+                except Exception as e:
+                    print(
+                        f'Error processing transaction {transaction.hash}: {e}'
+                    )
+            time.sleep(10)
