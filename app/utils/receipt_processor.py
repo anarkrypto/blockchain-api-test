@@ -18,6 +18,9 @@ class ReceiptProcessor:
         self.pending_transactions: List[Transaction] = []
         self.db = SessionLocal()
 
+    def add_pending_transaction(self, transaction: Transaction) -> None:
+        self.pending_transactions.append(transaction)
+
     def update_transaction(
         self, transaction: Transaction, tx_status: TransactionStatus
     ) -> None:
