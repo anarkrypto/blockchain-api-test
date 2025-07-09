@@ -199,13 +199,13 @@ async def process_transaction(
                 .first()
             )
             if balance:
-                balance.amount = str(
-                    int(balance.amount) + int(transfer.amount)
+                balance.balance = str(
+                    int(balance.balance) + int(transfer.amount)
                 )
             else:
                 balance = Balance(
                     address=transfer.to_address.lower(),
-                    amount=str(transfer.amount),
+                    balance=str(transfer.amount),
                     token=token,
                     chain_id=NETWORKS[NETWORK].chain_id,
                 )
