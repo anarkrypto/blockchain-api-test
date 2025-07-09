@@ -16,9 +16,12 @@ from app.schemas import (
     ListAddressesResponse,
     ProcessTransactionRequest,
     ProcessTransactionResponse,
+    WithdrawRequest,
+    WithdrawResponse,
 )
 from app.utils.keypair import generate_keypair
 from app.utils.transaction_detector import TransactionDetector
+from app.utils.wallet import Wallet
 
 app = FastAPI(
     title='Blockchain API',
@@ -235,4 +238,70 @@ async def process_transaction(
         network=NETWORK,
         chain_id=NETWORKS[NETWORK].chain_id,
         deposits=deposits,
+    )
+
+
+@app.post('/withdraw')
+async def withdraw(
+    req: WithdrawRequest,
+    db: Session = Depends(get_db),
+) -> WithdrawResponse:
+    """
+    Withdraw assets from one address to another.
+    """
+
+    # Lock row for update to avoid race condition
+    address = (
+        db.query(Address)
+        .filter_by(address=req.from_address)
+        .with_for_update()
+        .first()
+    )
+    if not address:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Address not found.',
+        )
+    if req.amount <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Invalid amount.',
+        )
+    balance = (
+        db.query(Balance)
+        .filter_by(address=req.from_address, token=req.token)
+        .with_for_update()
+        .first()
+    )
+    if not balance or int(balance.balance or '0') < req.amount:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='Insufficient funds.',
+        )
+
+    wallet = Wallet(NETWORK, address.index)
+    tx = wallet.transfer(
+        req.token,
+        req.to_address,
+        req.amount,
+    )
+    db.add(tx)
+    db.commit()
+
+    # Balances updates will be done in the background
+    # by the receipt_processor
+
+    return WithdrawResponse(
+        success=True,
+        hash=tx.hash,
+        from_address=req.from_address,
+        to_address=req.to_address,
+        amount=req.amount,
+        token=req.token,
+        network=NETWORK,
+        chain_id=NETWORKS[NETWORK].chain_id,
+        status='pending',
+        gas_used=int(tx.gas_used or 0),
+        gas_price=int(tx.gas_price or 0),
+        fee=int(tx.fee or 0),
     )

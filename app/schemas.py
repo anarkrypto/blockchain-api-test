@@ -88,4 +88,25 @@ class ProcessTransactionResponse(APIResponse):
     deposits: List[Deposit]
 
 
+class WithdrawRequest(BaseModel):
+    from_address: str
+    to_address: str
+    amount: int
+    token: TokenType
+
+
+class WithdrawResponse(APIResponse):
+    hash: str
+    from_address: str
+    to_address: str
+    amount: int
+    token: TokenType
+    network: str
+    chain_id: int
+    status: str
+    gas_used: int | None = None
+    gas_price: int | None = None
+    fee: int | None = None
+
+
 TransactionStatus = Literal['pending', 'confirmed', 'failed']
