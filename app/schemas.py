@@ -86,3 +86,6 @@ class ProcessTransactionResponse(APIResponse):
     network: str
     chain_id: int
     deposits: List[Deposit]
+
+
+TransactionStatus = Literal['pending', 'confirmed', 'failed']
