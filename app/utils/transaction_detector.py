@@ -1,4 +1,3 @@
-import logging
 from typing import List, Optional
 
 from eth_typing import HexStr
@@ -9,6 +8,7 @@ from web3.types import LogReceipt, TxData, TxReceipt
 
 from app.constants import USDC_CONTRACTS, NetworkType
 from app.schemas import Erc20Transfer, EthTransfer, TransactionResult
+from app.utils.logger import logger
 from app.utils.web3_provider import get_web3_provider
 
 TRANSFER_EVENT_SIGNATURE = Web3.keccak(
@@ -16,8 +16,6 @@ TRANSFER_EVENT_SIGNATURE = Web3.keccak(
 )
 MIN_TRANSFER_EVENT_TOPICS = 3
 ADDRESS_PADDING_START = 26  # Remove first 26 chars to get address from topic
-
-logger = logging.getLogger(__name__)
 
 
 class TransactionDetector:
