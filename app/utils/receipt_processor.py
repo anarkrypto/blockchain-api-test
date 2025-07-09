@@ -18,17 +18,14 @@ class ReceiptProcessor:
         self.pending_transactions: List[Transaction] = []
         self.db = SessionLocal()
 
-    def add_pending_transaction(self, transaction: Transaction) -> None:
-        self.pending_transactions.append(transaction)
-
-    def update_transaction(
+    def _update_transaction(
         self, transaction: Transaction, tx_status: TransactionStatus
     ) -> None:
         transaction.status = tx_status
         self.db.commit()
         self.pending_transactions.remove(transaction)
 
-    def update_balance(self, transaction: Transaction) -> None:
+    def _update_balance(self, transaction: Transaction) -> None:
         balance = (
             self.db.query(Balance)
             .filter_by(
@@ -46,7 +43,7 @@ class ReceiptProcessor:
         )
         self.db.commit()
 
-    def process_transaction(self, transaction: Transaction) -> None:
+    def _process_transaction(self, transaction: Transaction) -> None:
         self.pending_transactions.append(transaction)
 
         try:
@@ -54,20 +51,23 @@ class ReceiptProcessor:
                 to_checksum_address(transaction.hash)
             )
             if not tx_receipt or tx_receipt['status'] != 1:
-                self.update_transaction(transaction, 'failed')
+                self._update_transaction(transaction, 'failed')
                 return
-            self.update_transaction(transaction, 'confirmed')
-            self.update_balance(transaction)
+            self._update_transaction(transaction, 'confirmed')
+            self._update_balance(transaction)
         except TransactionNotFound:
             logger.warning(
                 f'Transaction {transaction.hash} not found on chain'
             )
 
+    def add_pending_transaction(self, transaction: Transaction) -> None:
+        self.pending_transactions.append(transaction)
+
     def start(self) -> None:
         while True:
             for transaction in self.pending_transactions:
                 try:
-                    self.process_transaction(transaction)
+                    self._process_transaction(transaction)
                 except Exception as e:
                     print(
                         f'Error processing transaction {transaction.hash}: {e}'
