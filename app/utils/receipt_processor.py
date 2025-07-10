@@ -37,10 +37,8 @@ class ReceiptProcessor:
         )
         assert balance is not None
         assert transaction.fee is not None
-        balance.balance = str(
-            int(balance.balance)
-            - (int(transaction.amount) + int(transaction.fee))
-        )
+        tx_spent = int(transaction.amount) + int(transaction.fee)
+        balance.balance = str(int(balance.balance) - tx_spent)
         self.db.commit()
 
     def _process_transaction(self, transaction: Transaction) -> None:
