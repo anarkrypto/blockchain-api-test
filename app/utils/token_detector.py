@@ -27,10 +27,8 @@ class TokenDetector:
             Dictionary containing filtered asset transfers for this transaction
         """
         try:
-            # Get transaction details to determine the block
-            tx_details = self._get_transaction_details(tx_hash)
-
-            print('tx_details', tx_details)
+            # Get transaction details
+            tx_details = self.w3.eth.get_transaction(HexStr(tx_hash))
 
             block_number = tx_details['blockNumber']
             if not block_number:
@@ -63,16 +61,6 @@ class TokenDetector:
 
         except Exception as e:
             logger.error(f'Failed to analyze transaction: {e}')
-            raise ValueError(f'Failed to analyze transaction: {str(e)}')
-
-    def _get_transaction_details(self, tx_hash: str) -> TxData:
-        try:
-            tx = self.w3.eth.get_transaction(HexStr(tx_hash))
-
-            return tx
-
-        except Exception as e:
-            logger.error(f'Failed to get transaction details: {e}')
             raise e
 
     def _get_asset_transfers_for_block(
