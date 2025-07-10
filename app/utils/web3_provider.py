@@ -1,6 +1,6 @@
 from web3 import Web3
 
-from app.constants import INFURA_API_KEY, VALID_NETWORKS, NetworkType
+from app.constants import ALCHEMY_API_KEY, VALID_NETWORKS, NetworkType
 
 
 def get_web3_provider(network: NetworkType) -> Web3:
@@ -14,5 +14,5 @@ def get_web3_provider(network: NetworkType) -> Web3:
     if network not in VALID_NETWORKS:
         raise ValueError(f'Unsupported network: {network}')
 
-    infura_url = f'https://{network}.infura.io/v3/{INFURA_API_KEY}'
-    return Web3(Web3.HTTPProvider(infura_url))
+    alchemy_url = f'https://eth-{network}.g.alchemy.com/v2/{ALCHEMY_API_KEY}'
+    return Web3(Web3.HTTPProvider(alchemy_url))

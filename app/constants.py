@@ -9,8 +9,8 @@ load_dotenv(override=True)
 MNEMONIC = cast(str, os.getenv('MNEMONIC'))
 assert MNEMONIC, 'MNEMONIC environment variable must be set.'
 
-INFURA_API_KEY = cast(str, os.getenv('INFURA_API_KEY'))
-assert INFURA_API_KEY, 'INFURA_API_KEY environment variable must be set.'
+ALCHEMY_API_KEY = cast(str, os.getenv('ALCHEMY_API_KEY'))
+assert ALCHEMY_API_KEY, 'ALCHEMY_API_KEY environment variable must be set.'
 
 NetworkType = Literal['mainnet', 'sepolia']
 
