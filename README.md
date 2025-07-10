@@ -108,7 +108,9 @@ uv run fastapi dev app/main.py
 
 ## Test
 
-pytest -s -vv
+```bash
+uv run pytest -s -vv
+```
 
 ## Extensions for VSCode (Development only)
 
