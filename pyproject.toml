@@ -29,6 +29,7 @@ quote-style = 'single'
 [dependency-groups]
 dev = [
     "alembic>=1.16.2",
+    "eth-tester[py-evm]>=0.13.0b1",
     "mypy>=1.16.1",
     "pytest>=8.4.1",
     "ruff>=0.12.2",
