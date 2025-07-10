@@ -151,7 +151,7 @@ class TransactionEvent(BaseModel):
     hash: str
     from_: str = Field(alias='from')  # 'from' is a reserved keyword in Python
     to: str
-    value: float
+    value: int
     erc721TokenId: Optional[Union[str, int]] = None
     erc1155Metadata: Optional[Dict[str, Any]] = None
     tokenId: Optional[Union[str, int]] = None

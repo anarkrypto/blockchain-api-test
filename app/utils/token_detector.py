@@ -1,6 +1,7 @@
 from typing import List
 
 from eth_typing import HexStr
+from eth_utils.currency import to_wei
 from web3.types import RPCEndpoint, TxData
 
 from app.constants import USDC_CONTRACTS, NetworkType
@@ -92,6 +93,10 @@ class TokenDetector:
                 raise ValueError('Invalid response from Alchemy API')
 
             transfers: List[TransactionEvent] = response.transfers
+
+            # Convert the transfers.value from ether to wei
+            for transfer in transfers:
+                transfer.value = to_wei(transfer.value, 'ether')
 
             return transfers
 

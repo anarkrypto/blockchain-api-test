@@ -173,13 +173,13 @@ async def process_transaction(
             token: TokenType = (
                 'ETH' if isinstance(transfer, EthTransfer) else 'USDC'
             )
-            amount = to_wei(transfer.value, 'ether')
+
             transaction = Transaction(
                 id=uuid.uuid4(),
                 hash=req.hash,
                 from_address=transfer.from_.lower(),
                 to_addresses=transfer.to.lower(),
-                amount=amount,
+                amount=transfer.value,
                 chain_id=NETWORKS[NETWORK].chain_id,
                 token=token,
             )
@@ -195,11 +195,13 @@ async def process_transaction(
                 .first()
             )
             if balance:
-                balance.balance = str(int(balance.balance) + int(amount))
+                balance.balance = str(
+                    int(balance.balance) + int(transfer.value)
+                )
             else:
                 balance = Balance(
                     address=transfer.to.lower(),
-                    balance=str(amount),
+                    balance=str(transfer.value),
                     token=token,
                     chain_id=NETWORKS[NETWORK].chain_id,
                 )
@@ -210,7 +212,7 @@ async def process_transaction(
             deposits.append(
                 Deposit(
                     address=transfer.to.lower(),
-                    amount=amount,
+                    amount=transfer.value,
                     token=token,
                 )
             )
