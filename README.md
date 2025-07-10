@@ -89,6 +89,17 @@ uv sync
 
 Garanta utilizar uma ALCHEMY_API_KEY válida, você pode gerar uma em https://dashboard.alchemy.com/
 
+## Database
+
+O banco de dados utilizado é o Sqlite, ele é um banco de dados leve e fácil de configurar, perfeito para testes.
+Mas a migração para outros banco de dados como Postgres, MySQL, etc. é simples caso necessário.
+
+### Migrations
+
+```bash
+uv run alembic upgrade head
+```
+
 ## Running
 
 ```bash
