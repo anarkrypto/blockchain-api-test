@@ -5,8 +5,10 @@ from pydantic import BaseModel, Field
 from app.constants import (
     MAX_ADDRESSES_TO_GENERATE_PER_REQUEST,
     MAX_ADDRESSES_TO_LIST_PER_REQUEST,
+    MAX_TRANSACTIONS_TO_LIST_PER_REQUEST,
     TokenType,
 )
+from app.models import Transaction
 
 NonNegativeInt = Annotated[int, Field(ge=0)]
 
@@ -110,3 +112,37 @@ class WithdrawResponse(APIResponse):
 
 
 TransactionStatus = Literal['pending', 'confirmed', 'failed']
+
+
+class TransactionSchema(BaseModel):
+    hash: str
+    from_address: str | None
+    to_address: str | None
+    amount: str
+    chain_id: int
+    token: str
+    status: str
+    gas_used: str | None
+    gas_price: str | None
+    fee: str | None
+    created_at: str
+
+
+class HistoryRequest(BaseModel):
+    address: str
+    token: TokenType
+    skip: NonNegativeInt = 0
+    limit: Annotated[
+        int, Field(gt=0, le=MAX_TRANSACTIONS_TO_LIST_PER_REQUEST)
+    ] = MAX_TRANSACTIONS_TO_LIST_PER_REQUEST
+
+
+class HistoryResponse(APIResponse):
+    address: str
+    token: TokenType
+    network: str
+    chain_id: int
+    limit: int
+    skip: int
+    total: int
+    transactions: List[TransactionSchema]

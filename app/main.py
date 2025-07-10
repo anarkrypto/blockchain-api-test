@@ -14,10 +14,13 @@ from app.schemas import (
     EthTransfer,
     GenerateAddressesRequest,
     GenerateAddressesResponse,
+    HistoryRequest,
+    HistoryResponse,
     ListAddressesPaginationParams,
     ListAddressesResponse,
     ProcessTransactionRequest,
     ProcessTransactionResponse,
+    TransactionSchema,
     WithdrawRequest,
     WithdrawResponse,
 )
@@ -328,4 +331,78 @@ async def withdraw(
         gas_used=int(tx.gas_used or 0),
         gas_price=int(tx.gas_price or 0),
         fee=int(tx.fee or 0),
+    )
+
+
+@app.get('/history')
+async def history(
+    req: HistoryRequest,
+    db: Session = Depends(get_db),
+) -> HistoryResponse:
+    """
+    Get transaction history for an address.
+    Supports pagination using `skip` and `limit` query parameters.
+    """
+    address = db.query(Address).filter_by(address=req.address).first()
+    if not address:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Address not found.',
+        )
+
+    # Count total transactions for this address and token
+    total = (
+        db.query(Transaction)
+        .filter(
+            (Transaction.from_address == req.address)
+            | (Transaction.to_address == req.address),
+            Transaction.token == req.token,
+            Transaction.chain_id == NETWORKS[NETWORK].chain_id,
+        )
+        .count()
+    )
+
+    # Get paginated transactions
+    transactions = (
+        db.query(Transaction)
+        .filter(
+            (Transaction.from_address == req.address)
+            | (Transaction.to_address == req.address),
+            Transaction.token == req.token,
+            Transaction.chain_id == NETWORKS[NETWORK].chain_id,
+        )
+        .order_by(Transaction.created_at.desc())
+        .offset(req.skip)
+        .limit(req.limit)
+        .all()
+    )
+
+    # Convert SQLAlchemy models to Pydantic schemas
+    transaction_schemas = [
+        TransactionSchema(
+            hash=tx.hash,
+            from_address=tx.from_address,
+            to_address=tx.to_address,
+            amount=tx.amount,
+            chain_id=tx.chain_id,
+            token=tx.token,
+            status=tx.status,
+            gas_used=tx.gas_used,
+            gas_price=tx.gas_price,
+            fee=tx.fee,
+            created_at=str(tx.created_at),
+        )
+        for tx in transactions
+    ]
+
+    return HistoryResponse(
+        success=True,
+        address=req.address,
+        network=NETWORK,
+        chain_id=NETWORKS[NETWORK].chain_id,
+        token=req.token,
+        skip=req.skip,
+        limit=req.limit,
+        total=total,
+        transactions=transaction_schemas,
     )
