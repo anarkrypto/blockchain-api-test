@@ -1,7 +1,6 @@
-import uuid
 from contextlib import asynccontextmanager
 from threading import Thread
-from typing import AsyncIterator, List, cast
+from typing import AsyncIterator, cast
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
@@ -168,7 +167,6 @@ async def process_transaction(
     for transfer in result.transfers:
         if transfer.to_address.lower() in existent_addresses:
             transaction = Transaction(
-                id=uuid.uuid4(),
                 hash=req.hash,
                 from_address=transfer.from_address.lower(),
                 to_addresses=transfer.to_address.lower(),
