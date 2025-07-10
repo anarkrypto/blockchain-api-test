@@ -1,4 +1,4 @@
-import time
+from threading import Event
 from typing import List
 
 from eth_utils.address import to_checksum_address
@@ -17,6 +17,8 @@ class ReceiptProcessor:
         self.w3 = get_web3_provider(network)
         self.pending_transactions: List[Transaction] = []
         self.db = SessionLocal()
+        self.started = False
+        self._stop_event = Event()
 
     def _update_transaction(
         self, transaction: Transaction, tx_status: TransactionStatus
@@ -64,15 +66,12 @@ class ReceiptProcessor:
             .filter(Transaction.status == 'pending')
             .all()
         )
+        logger.info(f'Found {len(pending_transactions)} pending transactions')
         for transaction in pending_transactions:
             self.add_pending_transaction(transaction)
 
-    def add_pending_transaction(self, transaction: Transaction) -> None:
-        self.pending_transactions.append(transaction)
-
-    def start(self) -> None:
-        self._sync_pending_transactions()
-        while True:
+    def _process_pending_transactions(self) -> None:
+        while self.started:
             for transaction in self.pending_transactions:
                 try:
                     self._process_transaction(transaction)
@@ -80,4 +79,24 @@ class ReceiptProcessor:
                     print(
                         f'Error processing transaction {transaction.hash}: {e}'
                     )
-            time.sleep(10)
+            self._stop_event.wait(10)  # Interruptible sleep
+
+    def add_pending_transaction(self, transaction: Transaction) -> None:
+        self.pending_transactions.append(transaction)
+
+    def start(self) -> None:
+        try:
+            if self.started:
+                return
+            self.started = True
+            self._stop_event.clear()
+            logger.info('Starting ReceiptProcessor')
+            self._sync_pending_transactions()
+            self._process_pending_transactions()
+        except Exception as e:
+            logger.exception(f'Receipt processor failed to start: {e}')
+
+    def stop(self) -> None:
+        logger.info('Receipt processor stopped')
+        self.started = False
+        self._stop_event.set()
