@@ -1,7 +1,7 @@
 import uuid
 from contextlib import asynccontextmanager
 from threading import Thread
-from typing import AsyncIterator, List
+from typing import AsyncIterator, List, cast
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
@@ -11,7 +11,6 @@ from app.database import get_db
 from app.models import Address, Balance, ProcessedTransaction, Transaction
 from app.schemas import (
     Deposit,
-    EthTransfer,
     GenerateAddressesRequest,
     GenerateAddressesResponse,
     HistoryRequest,
@@ -164,14 +163,10 @@ async def process_transaction(
         .all()
     }
 
-    deposits: List[Deposit] = []
+    deposits = []
 
     for transfer in result.transfers:
         if transfer.to_address.lower() in existent_addresses:
-            token: TokenType = (
-                'ETH' if isinstance(transfer, EthTransfer) else 'USDC'
-            )
-
             transaction = Transaction(
                 id=uuid.uuid4(),
                 hash=req.hash,
@@ -179,7 +174,7 @@ async def process_transaction(
                 to_addresses=transfer.to_address.lower(),
                 amount=transfer.amount,
                 chain_id=NETWORKS[NETWORK].chain_id,
-                token=token,
+                token=transfer.token,
             )
             db.add(transaction)
 
@@ -188,7 +183,7 @@ async def process_transaction(
                 db.query(Balance)
                 .filter_by(
                     address=transfer.to_address.lower(),
-                    token=token,
+                    token=transfer.token,
                 )
                 .first()
             )
@@ -200,7 +195,7 @@ async def process_transaction(
                 balance = Balance(
                     address=transfer.to_address.lower(),
                     balance=str(transfer.amount),
-                    token=token,
+                    token=transfer.token,
                     chain_id=NETWORKS[NETWORK].chain_id,
                 )
                 db.add(balance)
@@ -211,7 +206,7 @@ async def process_transaction(
                 Deposit(
                     address=transfer.to_address.lower(),
                     amount=transfer.amount,
-                    token=token,
+                    token=cast(TokenType, transfer.token),
                 )
             )
 
