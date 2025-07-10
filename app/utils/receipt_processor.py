@@ -55,6 +55,8 @@ class ReceiptProcessor:
             with self.db.begin():
                 self._update_transaction(transaction, 'confirmed')
                 self._update_balance(transaction)
+
+            logger.info(f'Transaction {transaction.hash} confirmed')
         except TransactionNotFound:
             logger.warning(
                 f'Transaction {transaction.hash} not found on chain'
