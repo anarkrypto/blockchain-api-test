@@ -1,7 +1,7 @@
 from threading import Event
 from typing import List
 
-from eth_utils.address import to_checksum_address
+from eth_typing import HexStr
 from web3.exceptions import TransactionNotFound
 
 from app.constants import NetworkType
@@ -46,7 +46,7 @@ class ReceiptProcessor:
 
         try:
             tx_receipt = self.w3.eth.get_transaction_receipt(
-                to_checksum_address(transaction.hash)
+                HexStr(transaction.hash)
             )
             if not tx_receipt or tx_receipt['status'] != 1:
                 self._update_transaction(transaction, 'failed')
