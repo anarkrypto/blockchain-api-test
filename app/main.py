@@ -19,6 +19,7 @@ from app.schemas import (
     WithdrawRequest,
     WithdrawResponse,
 )
+from app.utils.balance import get_balance
 from app.utils.keypair import generate_keypair
 from app.utils.receipt_processor import ReceiptProcessor
 from app.utils.transaction_detector import TransactionDetector
@@ -271,13 +272,10 @@ async def withdraw(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Invalid amount.',
         )
-    balance = (
-        db.query(Balance)
-        .filter_by(address=req.from_address, token=req.token)
-        .with_for_update()
-        .first()
-    )
-    if not balance or int(balance.balance or '0') < req.amount:
+
+    balance = get_balance(req.from_address, NETWORK, req.token)
+
+    if balance < req.amount:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail='Insufficient funds.',
