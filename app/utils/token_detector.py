@@ -1,8 +1,7 @@
 from typing import List
 
 from eth_typing import HexStr
-from eth_utils.currency import to_wei
-from web3.types import RPCEndpoint, TxData
+from web3.types import RPCEndpoint
 
 from app.constants import USDC_CONTRACTS, NetworkType
 from app.schemas import RawContract, TransactionEvent, TransactionResult
