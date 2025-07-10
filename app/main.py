@@ -169,7 +169,7 @@ async def process_transaction(
             transaction = Transaction(
                 hash=req.hash,
                 from_address=transfer.from_address.lower(),
-                to_addresses=transfer.to_address.lower(),
+                to_address=transfer.to_address.lower(),
                 amount=transfer.amount,
                 chain_id=NETWORKS[NETWORK].chain_id,
                 token=transfer.token,
