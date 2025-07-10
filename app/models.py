@@ -73,7 +73,9 @@ class Balance(Base):
 class Transaction(Base):
     __tablename__ = 'transactions'
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
 
     # Hash is not unique since a single transaction can transfer multiple
     # assets to multiple addresses (even the same address multiple times)
