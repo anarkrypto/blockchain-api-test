@@ -24,7 +24,6 @@ class ReceiptProcessor:
         self, transaction: Transaction, tx_status: TransactionStatus
     ) -> None:
         transaction.status = tx_status
-        self.db.commit()
         self.pending_transactions.remove(transaction)
 
     def _update_balance(self, transaction: Transaction) -> None:
@@ -41,7 +40,6 @@ class ReceiptProcessor:
         assert transaction.fee is not None
         tx_spent = int(transaction.amount) + int(transaction.fee)
         balance.balance = str(int(balance.balance) - tx_spent)
-        self.db.commit()
 
     def _process_transaction(self, transaction: Transaction) -> None:
         self.pending_transactions.append(transaction)
@@ -53,8 +51,10 @@ class ReceiptProcessor:
             if not tx_receipt or tx_receipt['status'] != 1:
                 self._update_transaction(transaction, 'failed')
                 return
-            self._update_transaction(transaction, 'confirmed')
-            self._update_balance(transaction)
+
+            with self.db.begin():
+                self._update_transaction(transaction, 'confirmed')
+                self._update_balance(transaction)
         except TransactionNotFound:
             logger.warning(
                 f'Transaction {transaction.hash} not found on chain'
