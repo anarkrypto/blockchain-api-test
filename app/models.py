@@ -50,12 +50,13 @@ class Balance(Base):
     )
     balance: Mapped[str] = mapped_column(String, nullable=False, default='0')
 
-    created_at: Mapped[str] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         server_default=text('CURRENT_TIMESTAMP'),
     )
-    updated_at: Mapped[str] = mapped_column(
+
+    updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         server_default=text('CURRENT_TIMESTAMP'),
@@ -108,7 +109,7 @@ class Transaction(Base):
     gas_used: Mapped[str | None] = mapped_column(String, nullable=True)
     gas_price: Mapped[str | None] = mapped_column(String, nullable=True)
     fee: Mapped[str | None] = mapped_column(String, nullable=True)
-    created_at: Mapped[str] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         server_default=text('CURRENT_TIMESTAMP'),
@@ -124,7 +125,7 @@ class ProcessedTransaction(Base):
         primary_key=True,
         nullable=False,
     )
-    created_at: Mapped[str] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
         server_default=text('CURRENT_TIMESTAMP'),
