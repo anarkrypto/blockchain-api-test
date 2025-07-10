@@ -71,3 +71,12 @@ def test_not_found_transaction() -> None:
     )
     with pytest.raises(TransactionNotFound):
         detector.analyze_transaction(tx_hash)
+
+
+def test_internal_transactions() -> None:
+    tx_hash = (
+        '0xc14f18ae1207497070b910160ff22866d6cad43a3e8354a76fcf3f7821056052'
+    )
+    result = detector.analyze_transaction(tx_hash)
+    print(len(result.transfers))
+    assert len(result.transfers) == 27  # noqa: PLR2004
