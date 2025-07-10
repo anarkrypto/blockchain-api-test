@@ -5,7 +5,7 @@ from eth_utils.currency import to_wei
 from web3.types import RPCEndpoint, TxData
 
 from app.constants import USDC_CONTRACTS, NetworkType
-from app.schemas import TransactionEvent, TransactionResult
+from app.schemas import RawContract, TransactionEvent, TransactionResult
 from app.utils.logger import logger
 from app.utils.web3_provider import get_web3_provider
 
@@ -30,6 +30,8 @@ class TokenDetector:
             # Get transaction details to determine the block
             tx_details = self._get_transaction_details(tx_hash)
 
+            print('tx_details', tx_details)
+
             block_number = tx_details['blockNumber']
             if not block_number:
                 raise ValueError(
@@ -51,10 +53,10 @@ class TokenDetector:
             tokens = self._get_tokens_found(filtered_transfers)
 
             return TransactionResult(
-                hash=tx_hash,
+                hash=tx_hash.lower(),
                 block_number=block_number,
-                from_address=tx_details['from'],
-                to_address=tx_details['to'],
+                from_address=tx_details['from'].lower(),
+                to_address=tx_details['to'].lower(),
                 transfers=filtered_transfers,
                 tokens=tokens,
             )
@@ -78,6 +80,7 @@ class TokenDetector:
     ) -> List[TransactionEvent]:
         try:
             # This custom RPC endpoint only works with Alchemy provider
+            # TODO: Add pagination
             response = self.w3.manager.request_blocking(
                 RPCEndpoint('alchemy_getAssetTransfers'),
                 [
@@ -85,6 +88,7 @@ class TokenDetector:
                         'fromBlock': block_number,
                         'toBlock': block_number,
                         'category': ['external', 'internal', 'erc20'],
+                        'excludeZeroValue': True,
                     }
                 ],
             )
@@ -92,13 +96,28 @@ class TokenDetector:
             if 'transfers' not in response:
                 raise ValueError('Invalid response from Alchemy API')
 
-            transfers: List[TransactionEvent] = response.transfers
+            converted_transfers = []
+            for transfer in response.transfers:
+                if transfer.asset is None:
+                    continue
+                new_transfer = TransactionEvent(
+                    blockNum=int(transfer.blockNum, 16),
+                    hash=transfer.hash.lower(),
+                    from_address=transfer['from'].lower(),
+                    to_address=transfer.to.lower(),
+                    amount=int(transfer.rawContract.value, 16),
+                    token=transfer.asset,
+                    raw_contract=RawContract(
+                        value=int(transfer.rawContract.value, 16),
+                        address=transfer.rawContract.address.lower()
+                        if transfer.rawContract.address is not None
+                        else None,
+                        decimal=int(transfer.rawContract.decimal, 16),
+                    ),
+                )
+                converted_transfers.append(new_transfer)
 
-            # Convert the transfers.value from ether to wei
-            for transfer in transfers:
-                transfer.value = to_wei(transfer.value, 'ether')
-
-            return transfers
+            return converted_transfers
 
         except Exception as e:
             logger.error(f'Failed to get asset transfers: {e}')
@@ -119,11 +138,11 @@ class TokenDetector:
         for transfer in transfers:
             if (
                 transfer.hash.lower() == tx_hash.lower()
-                and transfer.asset in tokens
+                and transfer.token in tokens
             ):
-                if transfer.asset == 'USDC' and (
-                    transfer.rawContract.address is None
-                    or transfer.rawContract.address.lower()
+                if transfer.token == 'USDC' and (
+                    transfer.raw_contract.address is None
+                    or transfer.raw_contract.address.lower()
                     != self.usdc_address
                 ):
                     continue
@@ -137,6 +156,6 @@ class TokenDetector:
     ) -> List[str]:
         tokens: List[str] = []
         for transfer in transfers:
-            if transfer.asset not in tokens:
-                tokens.append(transfer.asset)
+            if transfer.token not in tokens:
+                tokens.append(transfer.token)
         return tokens

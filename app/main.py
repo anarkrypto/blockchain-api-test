@@ -3,7 +3,6 @@ from contextlib import asynccontextmanager
 from threading import Thread
 from typing import AsyncIterator, List
 
-from eth_utils.currency import to_wei
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -29,7 +28,6 @@ from app.utils.balance import get_balance
 from app.utils.keypair import generate_keypair
 from app.utils.receipt_processor import ReceiptProcessor
 from app.utils.token_detector import TokenDetector
-from app.utils.transaction_detector import TransactionDetector
 from app.utils.wallet import Wallet
 
 receipt_processor = ReceiptProcessor(network=NETWORK)
@@ -156,7 +154,7 @@ async def process_transaction(
         )
 
     to_addresses = list(
-        set([transfer.to.lower() for transfer in result.transfers])
+        set([transfer.to_address.lower() for transfer in result.transfers])
     )
 
     existent_addresses = {
@@ -169,7 +167,7 @@ async def process_transaction(
     deposits: List[Deposit] = []
 
     for transfer in result.transfers:
-        if transfer.to.lower() in existent_addresses:
+        if transfer.to_address.lower() in existent_addresses:
             token: TokenType = (
                 'ETH' if isinstance(transfer, EthTransfer) else 'USDC'
             )
@@ -177,9 +175,9 @@ async def process_transaction(
             transaction = Transaction(
                 id=uuid.uuid4(),
                 hash=req.hash,
-                from_address=transfer.from_.lower(),
-                to_addresses=transfer.to.lower(),
-                amount=transfer.value,
+                from_address=transfer.from_address.lower(),
+                to_addresses=transfer.to_address.lower(),
+                amount=transfer.amount,
                 chain_id=NETWORKS[NETWORK].chain_id,
                 token=token,
             )
@@ -189,19 +187,19 @@ async def process_transaction(
             balance = (
                 db.query(Balance)
                 .filter_by(
-                    address=transfer.to.lower(),
+                    address=transfer.to_address.lower(),
                     token=token,
                 )
                 .first()
             )
             if balance:
                 balance.balance = str(
-                    int(balance.balance) + int(transfer.value)
+                    int(balance.balance) + int(transfer.amount)
                 )
             else:
                 balance = Balance(
-                    address=transfer.to.lower(),
-                    balance=str(transfer.value),
+                    address=transfer.to_address.lower(),
+                    balance=str(transfer.amount),
                     token=token,
                     chain_id=NETWORKS[NETWORK].chain_id,
                 )
@@ -211,8 +209,8 @@ async def process_transaction(
 
             deposits.append(
                 Deposit(
-                    address=transfer.to.lower(),
-                    amount=transfer.value,
+                    address=transfer.to_address.lower(),
+                    amount=transfer.amount,
                     token=token,
                 )
             )

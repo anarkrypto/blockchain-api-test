@@ -138,26 +138,19 @@ class HistoryResponse(APIResponse):
 
 
 class RawContract(BaseModel):
-    value: str
+    value: int
     address: Optional[str]
-    decimal: str
+    decimal: int
 
 
 class TransactionEvent(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    blockNum: str
-    uniqueId: str
+    blockNum: int
     hash: str
-    from_: str = Field(alias='from')  # 'from' is a reserved keyword in Python
-    to: str
-    value: int
-    erc721TokenId: Optional[Union[str, int]] = None
-    erc1155Metadata: Optional[Dict[str, Any]] = None
-    tokenId: Optional[Union[str, int]] = None
-    asset: str
-    category: str
-    rawContract: RawContract
+    from_address: str
+    to_address: str
+    amount: int
+    token: str
+    raw_contract: RawContract
 
 
 class TransactionResult(BaseModel):
