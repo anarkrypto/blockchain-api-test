@@ -10,6 +10,9 @@ from app.utils.logger import logger
 from app.utils.web3_provider import get_web3_provider
 
 
+# Detects tokens in a transaction and returns a list of asset transfers
+# using alchemy_getAssetTransfers, which ensures the detection of both
+# external and internal ETH transfers, as well as ERC20 transfers
 class TokenDetector:
     def __init__(self, network: NetworkType) -> None:
         self.w3 = get_web3_provider(network)
