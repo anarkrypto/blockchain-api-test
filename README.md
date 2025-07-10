@@ -87,6 +87,8 @@ uv sync
 
 - Copie o arquivo `.env.example` para `.env` e configure as variáveis de ambiente.
 
+Garanta utilizar uma ALCHEMY_API_KEY válida, você pode gerar uma em https://dashboard.alchemy.com/
+
 ## Running
 
 ```bash
