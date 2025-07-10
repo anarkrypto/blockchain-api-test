@@ -1,5 +1,7 @@
 import uuid
-from typing import List
+from contextlib import asynccontextmanager
+from threading import Thread
+from typing import AsyncIterator, List
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from sqlalchemy.orm import Session
@@ -26,12 +28,27 @@ from app.utils.transaction_detector import TransactionDetector
 from app.utils.wallet import Wallet
 
 receipt_processor = ReceiptProcessor(network=NETWORK)
-receipt_processor.start()
+
+
+def start_receipt_processor() -> None:
+    receipt_processor.start()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    thread = Thread(target=start_receipt_processor, daemon=True)
+    thread.start()
+    app.state.receipt_processor = receipt_processor
+    yield
+    receipt_processor.stop()
+    thread.join()
+
 
 app = FastAPI(
     title='Blockchain API',
     description='RESTful API for blockchain operations',
     version='0.1.0',
+    lifespan=lifespan,
 )
 
 
