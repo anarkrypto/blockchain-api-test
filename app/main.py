@@ -281,6 +281,8 @@ async def withdraw(
             detail='Insufficient funds.',
         )
 
+    chain_id = NETWORKS[NETWORK].chain_id
+
     wallet = Wallet(NETWORK, address.index)
     tx = wallet.transfer(
         req.token,
@@ -288,6 +290,7 @@ async def withdraw(
         req.amount,
     )
     db.add(tx)
+    db.add(ProcessedTransaction(hash=tx.hash, chain_id=chain_id))
     db.commit()
 
     receipt_processor.add_pending_transaction(tx)
@@ -303,7 +306,7 @@ async def withdraw(
         amount=req.amount,
         token=req.token,
         network=NETWORK,
-        chain_id=NETWORKS[NETWORK].chain_id,
+        chain_id=chain_id,
         status='pending',
         gas_used=int(tx.gas_used or 0),
         gas_price=int(tx.gas_price or 0),
