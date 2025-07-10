@@ -1,6 +1,6 @@
-from typing import Annotated, List, Literal, Optional
+from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.constants import (
     MAX_ADDRESSES_TO_GENERATE_PER_REQUEST,
@@ -8,7 +8,6 @@ from app.constants import (
     MAX_TRANSACTIONS_TO_LIST_PER_REQUEST,
     TokenType,
 )
-from app.models import Transaction
 
 NonNegativeInt = Annotated[int, Field(ge=0)]
 
@@ -32,16 +31,6 @@ class Erc20Transfer(BaseModel):
 
 
 TransactionType = Literal['ETH_TRANSFER', 'USDC_TRANSFER', 'OTHER']
-
-
-class TransactionResult(BaseModel):
-    hash: str
-    block_number: int
-    from_address: str
-    to_address: Optional[str]
-    eth_transfer: List[EthTransfer] = []
-    usdc_transfer: List[Erc20Transfer] = []
-    transaction_type: List[TransactionType] = []
 
 
 class GenerateAddressesRequest(BaseModel):
@@ -146,3 +135,34 @@ class HistoryResponse(APIResponse):
     skip: int
     total: int
     transactions: List[TransactionSchema]
+
+
+class RawContract(BaseModel):
+    value: str
+    address: Optional[str]
+    decimal: str
+
+
+class TransactionEvent(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
+    blockNum: str
+    uniqueId: str
+    hash: str
+    from_: str = Field(alias='from')  # 'from' is a reserved keyword in Python
+    to: str
+    value: float
+    erc721TokenId: Optional[Union[str, int]] = None
+    erc1155Metadata: Optional[Dict[str, Any]] = None
+    tokenId: Optional[Union[str, int]] = None
+    asset: str
+    category: str
+    rawContract: RawContract
+
+
+class TransactionResult(BaseModel):
+    hash: str
+    block_number: int
+    from_address: str
+    to_address: str
+    transfers: List[TransactionEvent]
