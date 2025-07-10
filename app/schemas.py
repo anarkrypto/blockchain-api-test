@@ -166,3 +166,4 @@ class TransactionResult(BaseModel):
     from_address: str
     to_address: str
     transfers: List[TransactionEvent]
+    tokens: List[str]

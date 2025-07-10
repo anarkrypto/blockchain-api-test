@@ -47,12 +47,15 @@ class TokenDetector:
                 transfers_data, tx_hash
             )
 
+            tokens = self._get_tokens_found(filtered_transfers)
+
             return TransactionResult(
                 hash=tx_hash,
                 block_number=block_number,
                 from_address=tx_details['from'],
                 to_address=tx_details['to'],
                 transfers=filtered_transfers,
+                tokens=tokens,
             )
 
         except Exception as e:
@@ -123,3 +126,12 @@ class TokenDetector:
                 filtered_transfers.append(transfer)
 
         return filtered_transfers
+
+    def _get_tokens_found(  # noqa: PLR6301
+        self, transfers: List[TransactionEvent]
+    ) -> List[str]:
+        tokens: List[str] = []
+        for transfer in transfers:
+            if transfer.asset not in tokens:
+                tokens.append(transfer.asset)
+        return tokens
