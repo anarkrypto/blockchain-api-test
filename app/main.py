@@ -55,23 +55,13 @@ app = FastAPI(
 )
 
 
-@app.post('/addresses', tags=['items'])
+@app.post('/addresses')
 async def generate_addresses(
     req: GenerateAddressesRequest,
     db: Session = Depends(get_db),
 ) -> GenerateAddressesResponse:
     """
     Generate Ethereum addresses.
-
-    Request body:
-
-    - **quantity**: number of addresses to generate
-
-    Returns:
-     - **success**: boolean
-     - **generated**: the number of addresses generated
-     - **total**: the total of addresses accumulated.
-    \f
     """
     total_before = db.query(Address).count()
 
@@ -102,17 +92,7 @@ async def list_addresses(
 ) -> ListAddressesResponse:
     """
     List previously generated Ethereum addresses.
-
     Supports pagination using `skip` and `limit` query parameters.
-    \f
-    :param params: Pagination parameters including skip and limit.
-
-    Returns:
-        - **success**: boolean
-        - **limit**: the number of addresses returned
-        - **skip**: the number of addresses skipped
-        - **total**: the total number of addresses
-        - **addresses**: the list of addresses
     """
 
     skip, limit = params.skip, params.limit
@@ -145,17 +125,6 @@ async def process_transaction(
 ) -> ProcessTransactionResponse:
     """
     Process a transaction by its hash.
-
-    Request body:
-    - **hash**: the hash of the transaction to process
-
-    Returns:
-     - **success**: boolean
-     - **hash**: the hash of the transaction
-     - **network**: the network of the transaction
-     - **chain_id**: the chain ID of the network
-     - **deposits**: list of deposits made by the transaction
-    \f
     """
 
     if db.query(ProcessedTransaction).filter_by(hash=req.hash).first():
