@@ -17,19 +17,6 @@ class KeyPair(BaseModel):
     private_key: str
 
 
-class EthTransfer(BaseModel):
-    amount: int
-    from_address: str
-    to_address: str
-
-
-class Erc20Transfer(BaseModel):
-    token_address: str
-    amount: int
-    from_address: str
-    to_address: str
-
-
 TransactionType = Literal['ETH_TRANSFER', 'USDC_TRANSFER', 'OTHER']
 
 
