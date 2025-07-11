@@ -1,6 +1,7 @@
 from typing import Annotated, List, Literal, Optional
 
-from pydantic import BaseModel, Field
+from eth_utils.address import is_address
+from pydantic import BaseModel, Field, field_validator
 
 from app.constants import (
     MAX_ADDRESSES_TO_GENERATE_PER_REQUEST,
@@ -8,6 +9,14 @@ from app.constants import (
     MAX_TRANSACTIONS_TO_LIST_PER_REQUEST,
     TokenType,
 )
+
+
+def validate_ethereum_address(v: str) -> str:
+    """Shared validator for Ethereum address format."""
+    if not is_address(v):
+        raise ValueError('Invalid Ethereum address format')
+    return v
+
 
 NonNegativeInt = Annotated[int, Field(ge=0)]
 
@@ -58,6 +67,11 @@ class Deposit(BaseModel):
     amount: int
     token: TokenType
 
+    @field_validator('address')
+    @classmethod
+    def validate_address_format(cls, v: str) -> str:
+        return validate_ethereum_address(v)
+
 
 class ProcessTransactionResponse(APIResponse):
     hash: str
@@ -71,6 +85,11 @@ class WithdrawRequest(BaseModel):
     to_address: str
     amount: int
     token: TokenType
+
+    @field_validator('from_address', 'to_address')
+    @classmethod
+    def validate_address_format(cls, v: str) -> str:
+        return validate_ethereum_address(v)
 
 
 class WithdrawResponse(APIResponse):
@@ -112,6 +131,11 @@ class HistoryRequest(BaseModel):
         int, Field(gt=0, le=MAX_TRANSACTIONS_TO_LIST_PER_REQUEST)
     ] = MAX_TRANSACTIONS_TO_LIST_PER_REQUEST
 
+    @field_validator('address')
+    @classmethod
+    def validate_address_format(cls, v: str) -> str:
+        return validate_ethereum_address(v)
+
 
 class HistoryResponse(APIResponse):
     address: str
@@ -138,6 +162,11 @@ class TransactionEvent(BaseModel):
     amount: int
     token: str
     raw_contract: RawContract
+
+    @field_validator('from_address', 'to_address')
+    @classmethod
+    def validate_address_format(cls, v: str) -> str:
+        return validate_ethereum_address(v)
 
 
 class TransactionResult(BaseModel):
