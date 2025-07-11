@@ -1,6 +1,7 @@
 from typing import Annotated, List, Literal, Optional
 
 from eth_utils.address import is_address
+from eth_utils.hexadecimal import is_hex
 from pydantic import BaseModel, Field, field_validator
 
 from app.constants import (
@@ -15,6 +16,13 @@ def validate_ethereum_address(v: str) -> str:
     """Shared validator for Ethereum address format."""
     if not is_address(v):
         raise ValueError('Invalid Ethereum address format')
+    return v
+
+
+def validate_ethereum_hash(v: str) -> str:
+    """Shared validator for Ethereum transaction hash format."""
+    if not is_hex(v) or len(v) != 66 or not v.startswith('0x'):  # noqa: PLR2004
+        raise ValueError('Invalid Ethereum transaction hash format')
     return v
 
 
@@ -60,6 +68,11 @@ class ListAddressesResponse(APIResponse):
 
 class ProcessTransactionRequest(BaseModel):
     hash: str
+
+    @field_validator('hash')
+    @classmethod
+    def validate_hash_format(cls, v: str) -> str:
+        return validate_ethereum_hash(v)
 
 
 class Deposit(BaseModel):
@@ -122,6 +135,11 @@ class TransactionSchema(BaseModel):
     fee: str | None
     created_at: str
 
+    @field_validator('hash')
+    @classmethod
+    def validate_hash_format(cls, v: str) -> str:
+        return validate_ethereum_hash(v)
+
 
 class HistoryRequest(BaseModel):
     address: str
@@ -167,6 +185,11 @@ class TransactionEvent(BaseModel):
     @classmethod
     def validate_address_format(cls, v: str) -> str:
         return validate_ethereum_address(v)
+
+    @field_validator('hash')
+    @classmethod
+    def validate_hash_format(cls, v: str) -> str:
+        return validate_ethereum_hash(v)
 
 
 class TransactionResult(BaseModel):
