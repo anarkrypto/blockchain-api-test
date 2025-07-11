@@ -649,8 +649,8 @@ def test_withdraw_balance_consistency(
 
 def test_history_invalid_address_format(client: TestClient) -> None:
     """Test history request with invalid address format."""
-    # FastAPI raises validation errors during dependency resolution when using Pydantic models
-    # This test expects a ValidationError to be raised for invalid address format
+    # FastAPI raises validation errors during dependency resolution when using Pydantic models  # noqa: E501
+    # This test expects a ValidationError to be raised for invalid address format  # noqa: E501
     with pytest.raises(ValidationError) as exc_info:
         client.get(
             '/history',
