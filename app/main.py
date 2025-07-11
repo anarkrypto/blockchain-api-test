@@ -307,14 +307,14 @@ async def withdraw(
 
 @app.get('/history')
 async def history(
-    req: HistoryRequest,
+    params: HistoryRequest = Depends(),
     db: Session = Depends(get_db),
 ) -> HistoryResponse:
     """
     Get transaction history for an address.
     Supports pagination using `skip` and `limit` query parameters.
     """
-    address = db.query(Address).filter_by(address=req.address).first()
+    address = db.query(Address).filter_by(address=params.address).first()
     if not address:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -325,9 +325,9 @@ async def history(
     total = (
         db.query(Transaction)
         .filter(
-            (Transaction.from_address == req.address)
-            | (Transaction.to_address == req.address),
-            Transaction.token == req.token,
+            (Transaction.from_address == params.address)
+            | (Transaction.to_address == params.address),
+            Transaction.token == params.token,
             Transaction.chain_id == NETWORKS[NETWORK].chain_id,
         )
         .count()
@@ -337,14 +337,14 @@ async def history(
     transactions = (
         db.query(Transaction)
         .filter(
-            (Transaction.from_address == req.address)
-            | (Transaction.to_address == req.address),
-            Transaction.token == req.token,
+            (Transaction.from_address == params.address)
+            | (Transaction.to_address == params.address),
+            Transaction.token == params.token,
             Transaction.chain_id == NETWORKS[NETWORK].chain_id,
         )
         .order_by(Transaction.created_at.desc())
-        .offset(req.skip)
-        .limit(req.limit)
+        .offset(params.skip)
+        .limit(params.limit)
         .all()
     )
 
@@ -368,12 +368,12 @@ async def history(
 
     return HistoryResponse(
         success=True,
-        address=req.address,
+        address=params.address,
         network=NETWORK,
         chain_id=NETWORKS[NETWORK].chain_id,
-        token=req.token,
-        skip=req.skip,
-        limit=req.limit,
+        token=params.token,
+        skip=params.skip,
+        limit=params.limit,
         total=total,
         transactions=transaction_schemas,
     )
