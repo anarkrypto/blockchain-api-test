@@ -19,6 +19,7 @@ Kaique Nunes <anarkrypto@gmail.com>
 - **Web3.py**: a Python library for interacting with the Ethereum blockchain and ecosystem
 - **eth-account**: a Python library for signing and verifying Ethereum transactions
 - **bip-utils**: a Python library for working with Ethereum addresses and mnemonic phrases
+- **eth-tester**: a Python library for testing Ethereum applications
 
 ## Docs
 
@@ -121,6 +122,4 @@ uv run pytest -s -vv
 
 - Este é apenas um projeto de teste, não deve ser utilizado em produção sem consideráveis ajustes.
 - Para produção é indispensável adicionar autenticação nas APIs por segurança.
-- Alguns bugs ainda podem ocorrer, melhorias são necessárias apesar do esforço em construir uma estrutura robusta no pouco tempo disponível.
-- Os testes atuais não cobrem 100% do código, mas dão uma boa base para o desenvolvimento.
 - Obrigado!
