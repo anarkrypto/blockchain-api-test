@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import StaticPool
-from web3 import Web3
+from web3 import BaseProvider, Web3
 from web3.providers.eth_tester import EthereumTesterProvider
 
 from app.constants import NetworkType
@@ -15,6 +15,14 @@ from app.database import get_db
 from app.main import app
 from app.models import Base
 from tests.tests_utils.test_token_detector import TestTokenDetector
+
+
+class Web3TesterProvider(BaseProvider):
+    ethereum_tester: EthereumTester
+
+
+class Web3Tester(Web3):
+    provider: Web3TesterProvider
 
 
 @pytest.fixture(autouse=True)
@@ -35,9 +43,9 @@ def eth_tester() -> EthereumTester:
 
 
 @pytest.fixture
-def w3(eth_tester: EthereumTester) -> Web3:
+def w3(eth_tester: EthereumTester) -> Web3Tester:
     """Create a Web3 instance connected to eth-tester."""
-    return Web3(EthereumTesterProvider(eth_tester))
+    return Web3Tester(EthereumTesterProvider(eth_tester))
 
 
 @pytest.fixture

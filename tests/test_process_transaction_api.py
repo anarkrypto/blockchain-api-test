@@ -9,6 +9,7 @@ from web3 import Web3
 from app.constants import NETWORK, NETWORKS, NetworkType
 from app.models import Balance, ProcessedTransaction, Transaction
 from app.schemas import ProcessTransactionResponse
+from tests.conftest import Web3Tester
 from tests.tests_utils.test_token_detector import TestTokenDetector
 from tests.tests_utils.test_wallet import TestWallet
 
@@ -42,7 +43,7 @@ def generate_test_addresses(client: TestClient) -> tuple[str, str]:
 
 
 @pytest.fixture
-def generate_funded_wallet(w3: Web3) -> TestWallet:
+def generate_funded_wallet(w3: Web3Tester) -> TestWallet:
     """Create a funded wallet using eth-tester."""
     return TestWallet.from_account_index(w3, 0)
 

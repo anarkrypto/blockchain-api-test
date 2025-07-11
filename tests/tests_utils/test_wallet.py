@@ -6,16 +6,16 @@ import uuid
 from typing import Optional
 
 from eth_utils.address import to_checksum_address
-from web3 import Web3
 
 from app.constants import NETWORKS
 from app.models import Transaction
+from tests.conftest import Web3Tester
 
 
 class TestWallet:
     """Wallet implementation for testing using eth-tester local blockchain."""
 
-    def __init__(self, w3: Web3, from_address: str, private_key: str):
+    def __init__(self, w3: Web3Tester, from_address: str, private_key: str):
         self.w3 = w3
         self.from_address = to_checksum_address(from_address)
         self.private_key = private_key
@@ -24,7 +24,9 @@ class TestWallet:
         ]  # Use sepolia config for consistency
 
     @classmethod
-    def from_account_index(cls, w3: Web3, account_index: int) -> 'TestWallet':
+    def from_account_index(
+        cls, w3: Web3Tester, account_index: int
+    ) -> 'TestWallet':
         """Create wallet from account index using eth-tester accounts."""
         accounts = w3.eth.accounts
         if account_index >= len(accounts):
