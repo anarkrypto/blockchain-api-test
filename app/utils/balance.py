@@ -17,7 +17,7 @@ def get_balance(address: str, network: NetworkType, token: str) -> int:
     pending_transactions = (
         db.query(Transaction.amount, Transaction.fee)
         .filter_by(
-            address=address,
+            from_address=address,
             token=token,
             chain_id=chain_id,
             status='pending',
