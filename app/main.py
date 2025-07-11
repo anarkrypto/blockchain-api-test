@@ -132,7 +132,13 @@ async def process_transaction(
         )
 
     detector = TokenDetector(NETWORK)
-    result = detector.analyze_transaction(req.hash)
+    try:
+        result = detector.analyze_transaction(req.hash)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f'Failed to analyze transaction: {str(e)}',
+        )
 
     if len(result.transfers) == 0:
         db.add(
