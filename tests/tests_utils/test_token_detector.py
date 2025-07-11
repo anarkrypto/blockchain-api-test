@@ -48,17 +48,26 @@ class TestTokenDetector(TokenDetector):
             )
 
             transfers = []
-            for tx in latest_block['transactions']:
-                if tx.value > 0:  # Only ETH transfers
+            for tx in latest_block['transactions']:  # type: ignore
+                # Handle AttributeDict (eth-tester transaction objects)
+                if hasattr(tx, 'value'):
+                    value = tx.value  # type: ignore
+                    from_addr = tx['from'].lower()  # type: ignore
+                    to_addr = tx['to'].lower()  # type: ignore
+                    tx_hash = f'0x{tx["hash"].hex()}'  # type: ignore
+                else:
+                    continue
+
+                if value > 0:
                     transfer = TransactionEvent(
                         blockNum=int(block_number, 16),
-                        hash=tx.hash.hex().lower(),
-                        from_address=tx['from'].lower(),
-                        to_address=tx['to'].lower(),
-                        amount=tx.value,
+                        hash=tx_hash,
+                        from_address=from_addr,
+                        to_address=to_addr,
+                        amount=value,
                         token='ETH',
                         raw_contract=RawContract(
-                            value=tx.value,
+                            value=value,
                             address=None,
                             decimal=18,
                         ),

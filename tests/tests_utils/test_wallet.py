@@ -5,7 +5,9 @@ Test wallet implementation using eth-tester for local blockchain testing.
 import uuid
 from typing import Optional
 
+from eth_typing import HexStr
 from eth_utils.address import to_checksum_address
+from web3.types import TxReceipt
 
 from app.constants import NETWORKS
 from app.models import Transaction
@@ -79,7 +81,7 @@ class TestWallet:
 
         return Transaction(
             id=str(uuid.uuid4()),
-            hash=tx_hash.hex(),
+            hash=f'0x{tx_hash.hex()}',
             from_address=self.from_address,
             to_address=to_address,
             amount=str(amount),
@@ -88,7 +90,7 @@ class TestWallet:
             status='confirmed' if receipt['status'] == 1 else 'failed',
             gas_used=str(receipt['gasUsed']),
             gas_price=str(tx['gasPrice']),
-            fee=str(receipt['gasUsed'] * tx['gasPrice']),
+            fee=str(receipt['gasUsed'] * int(str(tx['gasPrice']))),
         )
 
     def transfer_usdc(self, to_address: str, amount: int) -> Transaction:
@@ -124,7 +126,7 @@ class TestWallet:
 
         return Transaction(
             id=str(uuid.uuid4()),
-            hash=tx_hash.hex(),
+            hash=f'0x{tx_hash.hex()}',
             from_address=self.from_address,
             to_address=to_address,
             amount=str(amount),
@@ -133,16 +135,16 @@ class TestWallet:
             status='confirmed' if receipt['status'] == 1 else 'failed',
             gas_used=str(receipt['gasUsed']),
             gas_price=str(tx['gasPrice']),
-            fee=str(receipt['gasUsed'] * tx['gasPrice']),
+            fee=str(receipt['gasUsed'] * int(str(tx['gasPrice']))),
         )
 
     def fund_address(self, address: str, amount: int) -> Transaction:
         """Fund an address with ETH (useful for testing)."""
         return self.transfer_eth(address, amount)
 
-    def get_transaction_receipt(self, tx_hash: str) -> Optional[dict]:
+    def get_transaction_receipt(self, tx_hash: str) -> Optional[TxReceipt]:
         """Get transaction receipt."""
         try:
-            return self.w3.eth.get_transaction_receipt(tx_hash)
+            return self.w3.eth.get_transaction_receipt(HexStr(tx_hash))
         except Exception:
             return None
