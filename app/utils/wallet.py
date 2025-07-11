@@ -89,6 +89,7 @@ class Wallet:
     def _transfer_usdc(self, to_address: str, amount: int) -> Transaction:
         # A standard USDC (ERC-20) transfer typically consumes
         # ~50,000 to 65,000 gas units under normal network conditions
+        # TODO: Add gas estimation for USDC transfers
         gas_used = 65000
         gas_price = self.get_gas_price()
         nonce = self.get_nonce()
