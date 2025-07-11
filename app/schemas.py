@@ -1,6 +1,6 @@
-from typing import Annotated, Any, Dict, List, Literal, Optional, Union
+from typing import Annotated, List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
 from app.constants import (
     MAX_ADDRESSES_TO_GENERATE_PER_REQUEST,
