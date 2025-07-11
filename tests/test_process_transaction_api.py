@@ -175,6 +175,26 @@ def test_process_invalid_transaction_hash(
         assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
 
 
+def test_process_invalid_hash_format(client: TestClient) -> None:
+    """Test processing with an invalid hash format."""
+    # Test various invalid hash formats
+    invalid_hashes = [
+        'invalid_hash_format',
+        '0x123',  # Too short
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',  # Too long  # noqa: E501
+        '1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',  # Missing 0x prefix  # noqa: E501
+        '0X1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',  # Wrong case for 0x  # noqa: E501
+        '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdeg',  # Invalid hex character  # noqa: E501
+    ]
+
+    for invalid_hash in invalid_hashes:
+        response = client.post(
+            '/process-transaction', json={'hash': invalid_hash}
+        )
+        # Should return 422 error for invalid hash format
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
 def test_process_multiple_transactions(
     client: TestClient,
     generate_test_addresses: tuple[str, str],
