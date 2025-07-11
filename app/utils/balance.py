@@ -1,10 +1,12 @@
+from sqlalchemy.orm import Session
+
 from app.constants import NETWORKS, NetworkType
-from app.database import SessionLocal
 from app.models import Balance, Transaction
 
 
-def get_balance(address: str, network: NetworkType, token: str) -> int:
-    db = SessionLocal()
+def get_balance(
+    address: str, network: NetworkType, token: str, db: Session
+) -> int:
     chain_id = NETWORKS[network].chain_id
     balance = (
         db.query(Balance)

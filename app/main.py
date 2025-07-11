@@ -258,7 +258,7 @@ async def withdraw(
             detail='Invalid amount.',
         )
 
-    balance = get_balance(req.from_address, NETWORK, req.token)
+    balance = get_balance(req.from_address, NETWORK, req.token, db)
 
     if balance < req.amount:
         raise HTTPException(
