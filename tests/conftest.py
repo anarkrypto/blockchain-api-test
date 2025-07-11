@@ -14,7 +14,7 @@ from app.constants import NetworkType
 from app.database import get_db
 from app.main import app
 from app.models import Base
-from tests.tests_utils.test_token_detector import TestTokenDetector
+from tests.tests_utils.test_token_detector_util import TestTokenDetector
 
 
 class Web3TesterProvider(BaseProvider):

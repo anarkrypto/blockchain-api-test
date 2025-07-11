@@ -10,8 +10,8 @@ from app.constants import NETWORK, NETWORKS, NetworkType
 from app.models import Balance, ProcessedTransaction, Transaction
 from app.schemas import ProcessTransactionResponse
 from tests.conftest import Web3Tester
-from tests.tests_utils.test_token_detector import TestTokenDetector
-from tests.tests_utils.test_wallet import TestWallet
+from tests.tests_utils.test_token_detector_util import TestTokenDetector
+from tests.tests_utils.test_wallet_util import TestWallet
 
 
 def validate_response_schema(data: Dict[str, Any], schema_class: type) -> None:
