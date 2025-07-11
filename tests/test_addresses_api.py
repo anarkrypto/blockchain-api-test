@@ -44,7 +44,9 @@ def test_generate_addresses_accumulates_total(client: TestClient) -> None:
     assert data2['total'] == quantity * 2
 
 
-def test_list_addresses_pagination(client: TestClient) -> None:
+def test_list_addresses_pagination(
+    client: TestClient,
+) -> None:
     # Setup: Create test data
     quantity = 15
     setup_response = client.post('/addresses', json={'quantity': quantity})
@@ -77,3 +79,25 @@ def test_generate_addresses_invalid_quantity(client: TestClient) -> None:
 def test_list_addresses_invalid_pagination(client: TestClient) -> None:
     response = client.get('/addresses?skip=-5&limit=0')
     assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+
+def test_generate_valid_address_from_mnemonic(
+    client: TestClient,
+) -> None:
+    skip = 0
+    limit = 2
+    # Addresses generated with the test mnemonic
+    test_address_0 = '0xf39b278078f5488ca53b57eea65a9186d17e06e3'
+    test_address_1 = '0x4bb67806f3d073d5d57c2015401af5934db5a16c'
+
+    setup_response = client.post('/addresses', json={'quantity': limit})
+    assert setup_response.status_code == status.HTTP_200_OK
+
+    response = client.get(f'/addresses?skip={skip}&limit={limit}')
+    assert response.status_code == status.HTTP_200_OK
+
+    data = response.json()
+    assert data['success'] is True
+
+    assert data['addresses'][0] == test_address_0
+    assert data['addresses'][1] == test_address_1
