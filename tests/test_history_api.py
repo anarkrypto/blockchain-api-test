@@ -12,6 +12,7 @@ from typing import Any, Dict
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from web3 import Web3
 
@@ -316,10 +317,20 @@ def test_history_address_not_found(client: TestClient) -> None:
 
 def test_history_invalid_address_format(client: TestClient) -> None:
     """Test history request with invalid address format."""
-    # This test is skipped because FastAPI raises validation errors during dependency resolution  # noqa: E501
-    # when using Pydantic models as dependencies, which results in a 500 error rather than 422  # noqa: E501
-    # This is expected behavior for the current API design
-    pass
+    # FastAPI raises validation errors during dependency resolution when using Pydantic models
+    # This test expects a ValidationError to be raised for invalid address format
+    with pytest.raises(ValidationError) as exc_info:
+        client.get(
+            '/history',
+            params={
+                'address': 'invalid_address',
+                'token': 'ETH',
+            },
+        )
+
+    # Verify the validation error contains the expected message
+    error_detail = str(exc_info.value)
+    assert 'Invalid Ethereum address format' in error_detail
 
 
 def test_history_invalid_token(client: TestClient) -> None:
