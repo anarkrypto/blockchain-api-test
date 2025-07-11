@@ -48,7 +48,7 @@ class TestTokenDetector(TokenDetector):
             )
 
             transfers = []
-            for tx in latest_block['transactions']:  # type: ignore
+            for tx in latest_block['transactions']:
                 # Handle AttributeDict (eth-tester transaction objects)
                 if hasattr(tx, 'value'):
                     value = tx.value  # type: ignore
