@@ -240,6 +240,12 @@ async def withdraw(
     Withdraw assets from one address to another.
     """
 
+    if req.from_address == req.to_address:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail='From and to addresses cannot be the same.',
+        )
+
     # Lock row for update to avoid race condition
     address = (
         db.query(Address)
